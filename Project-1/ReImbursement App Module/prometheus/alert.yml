@@ -1,0 +1,14 @@
+groups:
+  - name: Alerts
+    rules:
+      - alert: InstanceDown
+        expr: up{job="javaapi"} < 1
+        for: 5m
+
+      - alert: ReactDown
+        expr: up{job="react"} < 1
+        for: 3m
+
+      - alert: EmailDown
+        expr: up{job="emailapi"} < 1
+        for: 5m

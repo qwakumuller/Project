@@ -1,0 +1,3 @@
+FROM openjdk:8-jdk-alpine
+COPY target/Email-API-0.0.1-SNAPSHOT.jar Email-API-0.0.1-SNAPSHOT.jar
+ENTRYPOINT ["java", "-jar", "/Email-API-0.0.1-SNAPSHOT.jar" ]

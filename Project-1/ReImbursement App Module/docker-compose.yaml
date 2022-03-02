@@ -1,0 +1,95 @@
+version: "3.9"
+
+networks:
+  java-react:
+
+volumes:
+  prometheusData:
+    driver: local
+  grafanaData:
+    driver: local
+
+services:
+  emailapi:
+    image:
+      muller/email:v2
+    environment:
+      - Reimbursement_URL=http://localhost:8081/employee
+
+    container_name: email
+    networks:
+      - java-react
+    depends_on:
+      - javaapi
+
+  javaapi:
+    image: muller/reimbursement:v2
+    ports:
+      - '8081:8081'
+    container_name: java
+    environment:
+      - Email_URL=http://emailapi:8082
+    networks:
+      - java-react
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+
+
+
+
+  react:
+    image: muller/react:v2
+    container_name: react
+    ports:
+      - "3030:3030"
+    networks:
+      - java-react
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+    - "3000:3000"
+    container_name: grafana
+    networks:
+      - java-react
+    depends_on:
+      - loki
+    volumes:
+      - grafanaData:/var/lib/grafana
+
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    container_name: loki
+    networks:
+      - java-react
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./promtail-config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+    command:
+      - config.file=/etc/promtail/promtail-config.yaml
+
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus/
+      - prometheusData:/prometheus
+    container_name: prometheus
+
+
+
+
+
+
+
